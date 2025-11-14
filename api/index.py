@@ -1,18 +1,32 @@
+from http.server import BaseHTTPRequestHandler
 import json
+from urllib.parse import urlparse, parse_qs
 
-def handler(request):
-    method = request.method
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        query = parse_qs(urlparse(self.path).query)
+        name = query.get("name", ["Anonymous"])[0]
 
-    if method == "GET":
-        name = request.query_params.get("name", "Anonymous")
-        return {"message": f"Hello, {name}!"}
+        response = {
+            "message": f"Hello, {name}!"
+        }
 
-    if method == "POST":
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(response).encode("utf-8"))
+
+    def do_POST(self):
+        length = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(length)
         try:
-            data = json.loads(request.body.decode())
+            data = json.loads(body)
             name = data.get("name", "Anonymous")
-            return {"message": f"POST received from {name}"}
+            response = {"message": f"POST received from {name}"}
         except:
-            return {"error": "Invalid JSON"}
+            response = {"error": "Invalid JSON"}
 
-    return {"error": "Unsupported method"}
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(response).encode("utf-8"))
