@@ -30,3 +30,8 @@ class handler(BaseHTTPRequestHandler):
         self.send_header("Content-type", "application/json")
         self.end_headers()
         self.wfile.write(json.dumps(response).encode("utf-8"))
+
+if __name__ == "__main__":
+    from http.server import HTTPServer
+    server = HTTPServer(("0.0.0.0", 8000), handler)
+    server.serve_forever()
